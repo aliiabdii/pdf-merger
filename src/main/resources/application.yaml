@@ -1,0 +1,7 @@
+---
+spring:
+  application:
+    name: pdf-merger
+gg:
+  jte:
+    development-mode: true
