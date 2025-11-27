@@ -1,3 +1,5 @@
+@param String siteKey
+
 @template.layout.main(content = @`
     <h1>Merge your PDFs Securely and Free of Charge</h1>
     <p>If you have been searching the web for a tool where you can just merge a bunch of PDF files into one
@@ -6,15 +8,16 @@
     <p><b>THIS WEBSITE DOES NOT STORE ANY OF THE FILES THAT YOU UPLOAD!</b> It just merges them on fly and returns
         the single merged file back to you.</p>
 
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
     <form action="/merge" method="post" enctype="multipart/form-data">
         <div id="upload-sections">
 
         </div>
         <button type="button" id="add-more">Add More Files</button>
         <br><br>
-        <div>
-            <label for="captcha">Captcha:</label>
-            <input type="text" id="captcha" name="captcha" required>
+        <div class="cf-turnstile"
+             data-sitekey="${siteKey}">
         </div>
         <br>
         <button type="submit">Merge</button>

@@ -5,3 +5,7 @@ spring:
 gg:
   jte:
     development-mode: true
+turnstile:
+  enabled: false
+  siteKey: dummy-site-key
+  secretKey: dummy-secret

@@ -1,13 +1,13 @@
-package com.aliiabdii.pdf.merger
+package com.aliiabdii.pdf.merger.service
 
 import org.apache.pdfbox.Loader
-import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.multipdf.PDFMergerUtility
-import org.springframework.stereotype.Component
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayOutputStream
 
-@Component
+@Service
 class PDFService {
 
     fun mergePdfFiles(pdfFiles: Array<MultipartFile>): ByteArray {

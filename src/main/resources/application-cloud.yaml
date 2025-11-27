@@ -3,3 +3,6 @@ gg:
   jte:
     development-mode: false
     use-precompiled-templates: true
+
+turnstile:
+  enabled: true
