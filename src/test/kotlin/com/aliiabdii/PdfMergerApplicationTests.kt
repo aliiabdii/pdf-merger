@@ -37,6 +37,7 @@ class PdfMergerIntegrationTests {
             MockMvcRequestBuilders.multipart("/merge")
                 .file(file1)
                 .file(file2)
+                .param("cf-turnstile-response", "dummy_token")
                 .characterEncoding("utf-8")
         )
             .andExpect(status().isOk)
