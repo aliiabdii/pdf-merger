@@ -27,6 +27,7 @@ class MainController(
     @GetMapping("/", "/index")
     fun index(model: Model): String {
         model.addAttribute("siteKey", turnstileService.getSiteKey())
+        model.addAttribute("captchaEnabled", turnstileService.isEnabled())
         return "page/index"
     }
 

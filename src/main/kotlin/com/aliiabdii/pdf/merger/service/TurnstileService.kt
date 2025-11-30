@@ -18,6 +18,9 @@ class TurnstileService(
     private val webClient: WebClient,
     private val config: TurnstileConfig
 ) {
+    fun isEnabled(): Boolean {
+        return config.enabled
+    }
 
     fun getSiteKey(): String {
         return config.siteKey

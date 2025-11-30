@@ -1,3 +1,4 @@
+@param Boolean captchaEnabled
 @param String siteKey
 
 @template.layout.main(content = @`
@@ -8,7 +9,9 @@
     <p><b>THIS WEBSITE DOES NOT STORE ANY OF THE FILES THAT YOU UPLOAD!</b> It just merges them on fly and returns
         the single merged file back to you.</p>
 
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    @if(captchaEnabled)
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    @endif
 
     <form action="/merge" method="post" enctype="multipart/form-data">
         <div id="upload-sections">
@@ -16,9 +19,11 @@
         </div>
         <button type="button" id="add-more">Add More Files</button>
         <br><br>
-        <div class="cf-turnstile"
-             data-sitekey="${siteKey}">
-        </div>
+        @if(captchaEnabled)
+            <div class="cf-turnstile"
+                 data-sitekey="${siteKey}">
+            </div>
+        @endif
         <br>
         <button type="submit">Merge</button>
     </form>
