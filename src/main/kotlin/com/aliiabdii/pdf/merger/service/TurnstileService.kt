@@ -29,6 +29,8 @@ class TurnstileService(
     fun validate(remoteAddress: String, captchaToken: String): Boolean {
         if (!config.enabled) return true
 
+        if (captchaToken.isEmpty()) return false
+
         return verifyToken(captchaToken, remoteAddress)
     }
 

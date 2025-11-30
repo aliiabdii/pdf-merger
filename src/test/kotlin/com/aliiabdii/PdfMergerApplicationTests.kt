@@ -18,7 +18,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import java.io.ByteArrayOutputStream
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = ["service.max-files:2"]
+)
 @AutoConfigureMockMvc
 class PdfMergerIntegrationTests {
 
@@ -48,6 +51,26 @@ class PdfMergerIntegrationTests {
         Loader.loadPDF(mergedBytes).use { doc ->
             assertEquals(3, doc.numberOfPages)
         }
+    }
+
+    @Test
+    fun `too many files returns bad request`() {
+        val pdf1 = createPdf(1)
+        val pdf2 = createPdf(2)
+        val pdf3 = createPdf(2)
+
+        val file1 = MockMultipartFile("files", "a.pdf", MediaType.APPLICATION_PDF_VALUE, pdf1)
+        val file2 = MockMultipartFile("files", "b.pdf", MediaType.APPLICATION_PDF_VALUE, pdf2)
+        val file3 = MockMultipartFile("files", "c.pdf", MediaType.APPLICATION_PDF_VALUE, pdf3)
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.multipart("/merge")
+                .file(file1)
+                .file(file2)
+                .file(file3)
+                .characterEncoding("utf-8")
+        )
+            .andExpect(status().isBadRequest)
     }
 
     private fun createPdf(pages: Int): ByteArray {

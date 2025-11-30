@@ -2,6 +2,8 @@
 spring:
   application:
     name: pdf-merger
+service:
+  max-files: 5
 gg:
   jte:
     development-mode: true

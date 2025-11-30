@@ -85,6 +85,21 @@
                 padding: 10px 20px 20px;
             }
         }
+
+        /* CSS for the loading spinner (minimal styling) */
+        .loading::after {
+            content: " ↻";
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>

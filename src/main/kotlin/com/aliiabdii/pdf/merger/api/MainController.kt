@@ -3,6 +3,7 @@ package com.aliiabdii.pdf.merger.api
 import com.aliiabdii.pdf.merger.service.PDFService
 import com.aliiabdii.pdf.merger.service.TurnstileService
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile
 
 @Controller
 class MainController(
+    @Value($$"${service.max-files:5}") private val maxFiles: Int,
     private val turnstileService: TurnstileService,
     private val pdfService: PDFService) {
 
@@ -28,6 +30,7 @@ class MainController(
     fun index(model: Model): String {
         model.addAttribute("siteKey", turnstileService.getSiteKey())
         model.addAttribute("captchaEnabled", turnstileService.isEnabled())
+        model.addAttribute("maxFiles", maxFiles)
         return "page/index"
     }
 
@@ -39,11 +42,15 @@ class MainController(
     @PostMapping(value = ["/merge"], consumes = ["multipart/form-data"])
     fun merge(
         @RequestParam("files") files: Array<MultipartFile>,
-        @RequestParam("cf-turnstile-response") captchaToken: String,
+        @RequestParam("cf-turnstile-response", required = false) captchaToken: String?,
         request: HttpServletRequest
     ): ResponseEntity<ByteArrayResource> {
+        if (files.size > maxFiles) {
+            // TODO: provide error message
+            return ResponseEntity.badRequest().build()
+        }
         val clientIp = request.remoteAddr
-        val isValid = turnstileService.validate(captchaToken, clientIp)
+        val isValid = turnstileService.validate(captchaToken ?: "", clientIp)
 
         if (!isValid) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
