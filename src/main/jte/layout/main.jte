@@ -48,10 +48,48 @@
         h1 {
             color: #444;
         }
+
+        .menu-toggle {
+            display: none;
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                display: block;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+                position: static;
+                padding: 0;
+                transform: translateX(-100%);
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out;
+            }
+            .sidebar.is-active {
+                max-height: 500px;
+                transform: translateX(0);
+            }
+            .sidebar nav {
+                padding: 10px 20px 20px;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="sidebar">
+<button class="menu-toggle" aria-label="Open Menu" onclick="toggleMenu()">☰ Menu</button>
+<div class="sidebar" id="sidebar">
     <img src="logo.png" alt="Logo">
     <nav>
         <a href="/">Merge</a>
@@ -63,5 +101,11 @@
         ${content}
     </section>
 </div>
+<script>
+    function toggleMenu() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('is-active');
+    }
+</script>
 </body>
 </html>
