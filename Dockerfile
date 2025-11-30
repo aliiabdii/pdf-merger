@@ -1,6 +1,19 @@
-FROM eclipse-temurin:21.0.2_13-jre
+# ---------- BUILD STAGE ----------
+FROM gradle:8.14-jdk21 AS build
+
+WORKDIR /workspace
+COPY . .
+
+RUN gradle bootJar
+
+
+# ---------- RUNTIME STAGE ----------
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
-COPY build/libs/pdf-merger-*.jar app.jar
+
+COPY --from=build /workspace/build/libs/*.jar /app/app.jar
+
+EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
