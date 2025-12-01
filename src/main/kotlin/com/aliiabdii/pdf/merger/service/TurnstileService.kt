@@ -26,7 +26,7 @@ class TurnstileService(
         return config.siteKey
     }
 
-    fun validate(remoteAddress: String, captchaToken: String): Boolean {
+    fun validate(captchaToken: String, remoteAddress: String): Boolean {
         if (!config.enabled) return true
 
         if (captchaToken.isEmpty()) return false
