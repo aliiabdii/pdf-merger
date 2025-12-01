@@ -2,6 +2,10 @@
 spring:
   application:
     name: pdf-merger
+  servlet:
+    multipart:
+      max-file-size: 3MB
+      max-request-size: 15MB
 service:
   max-files: 5
 gg:

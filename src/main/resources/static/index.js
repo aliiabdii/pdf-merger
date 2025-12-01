@@ -104,11 +104,11 @@ form.addEventListener('submit', function (event) {
             if (contentType && contentType.includes('application/pdf')) {
                 return response.blob();
             } else {
-                throw new Error('PDF file was generated correctly. Try again!');
+                throw new Error('PDF file was generated but could not be fetched. Try again!');
             }
         } else {
-            return response.text().then(text => {
-                throw new Error(`Server Error: ${response.status} - ${text || 'Unknown error'}`);
+            return response.json().then(error => {
+                throw error;
             });
         }
     })
@@ -125,16 +125,14 @@ form.addEventListener('submit', function (event) {
         window.URL.revokeObjectURL(url); // Clean up the temporary URL
 
         // Re-enable the button after successful download initiation
-        resetSubmitButton();
+        resetSubmitButton('');
     })
     .catch(error => {
-        console.error('Merge failed:', error);
-        errorMessageDiv.textContent = `Error: ${error.message}`;
-
-        resetSubmitButton();
+        resetSubmitButton(error.message);
     });
 
-    function resetSubmitButton() {
+    function resetSubmitButton(error) {
+        errorMessageDiv.textContent = error
         submitButton.disabled = false;
         submitButton.classList.remove('loading');
         submitButton.textContent = 'Submit';

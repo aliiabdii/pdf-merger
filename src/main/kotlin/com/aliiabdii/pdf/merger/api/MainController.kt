@@ -2,6 +2,7 @@ package com.aliiabdii.pdf.merger.api
 
 import com.aliiabdii.pdf.merger.service.PDFService
 import com.aliiabdii.pdf.merger.service.TurnstileService
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.multipart.MultipartFile
+
+private val logger = KotlinLogging.logger {}
 
 @Controller
 class MainController(
@@ -46,8 +49,7 @@ class MainController(
         request: HttpServletRequest
     ): ResponseEntity<ByteArrayResource> {
         if (files.size > maxFiles) {
-            // TODO: provide error message
-            return ResponseEntity.badRequest().build()
+            throw IllegalStateException("Only up to $maxFiles files are allowed")
         }
         val clientIp = request.remoteAddr
         val isValid = turnstileService.validate(captchaToken ?: "", clientIp)
@@ -66,7 +68,7 @@ class MainController(
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(resource)
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error { e }
             return ResponseEntity.status(500).build()
         }
     }
