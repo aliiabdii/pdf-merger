@@ -9,7 +9,7 @@
     <meta name="description" content="A simple PDF merging website">
     <meta name="keywords" content="PDF, merge, combine, files">
     <title>PDF Merger</title>
-    <script defer data-domain="pdf-merger.app" src="https://pdf-merger.app/analytics/js/script.js"></script>
+    <script defer data-domain="pdf-merger.app" src="https://analytics.pdf-merger.app/js/script.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
