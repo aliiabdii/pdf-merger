@@ -112,8 +112,12 @@ form.addEventListener('submit', function (event) {
                 throw new Error('PDF file was generated but could not be fetched. Try again!');
             }
         } else {
-            return response.json().then(error => {
-                throw error;
+            return response.text().then(rawError => {
+                try {
+                    throw JSON.parse(text);
+                } catch (e) {
+                    throw new Error(rawError);
+                }
             });
         }
     })
