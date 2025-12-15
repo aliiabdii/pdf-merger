@@ -27,7 +27,7 @@
             </div>
         @endif
         <br>
-        <button type="submit" id="submitButton">Merge</button>
+        <button type="submit" id="submitButton" class="use">Merge</button>
         <div id="errorMessage" class="error-message"></div>
     </form>
 
