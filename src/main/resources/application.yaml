@@ -4,10 +4,10 @@ spring:
     name: pdf-merger
   servlet:
     multipart:
-      max-file-size: 3MB
-      max-request-size: 15MB
+      max-file-size: 20MB
+      max-request-size: 20MB
 service:
-  max-files: 5
+  max-files: 10
 gg:
   jte:
     development-mode: true

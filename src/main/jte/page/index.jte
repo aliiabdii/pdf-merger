@@ -1,6 +1,7 @@
 @param Boolean captchaEnabled
 @param String siteKey
 @param Integer maxFiles
+@param Integer maxSize
 
 @template.layout.main(content = @`
     <h1>Merge your PDFs Securely and Free of Charge</h1>
@@ -48,6 +49,6 @@
         .upload-section { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
     </style>
 
-    <script>const maxFiles = ${maxFiles};</script>
+    <script>const maxFiles = ${maxFiles}; const maxSize = ${maxSize};</script>
     <script src="index.js"></script>
 `)

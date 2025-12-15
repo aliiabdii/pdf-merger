@@ -11,6 +11,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
+import org.springframework.util.unit.DataSize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -21,6 +22,7 @@ private val logger = KotlinLogging.logger {}
 @Controller
 class MainController(
     @Value($$"${service.max-files:5}") private val maxFiles: Int,
+    @Value($$"${service.max-files:5}") private val maxSize: DataSize,
     private val turnstileService: TurnstileService,
     private val pdfService: PDFService) {
 
@@ -34,6 +36,7 @@ class MainController(
         model.addAttribute("siteKey", turnstileService.getSiteKey())
         model.addAttribute("captchaEnabled", turnstileService.isEnabled())
         model.addAttribute("maxFiles", maxFiles)
+        model.addAttribute("maxSize", maxSize.toMegabytes())
         return "page/index"
     }
 

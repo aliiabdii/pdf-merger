@@ -86,6 +86,11 @@ const errorMessageDiv = document.getElementById('errorMessage');
 form.addEventListener('submit', function (event) {
     event.preventDefault();
 
+    if (!checkSize()) {
+        errorMessageDiv.textContent = "Total size of the files should be maximum " + maxSize + "MB!";
+        return;
+    }
+
     errorMessageDiv.textContent = '';
 
     submitButton.disabled = true;
@@ -136,5 +141,22 @@ form.addEventListener('submit', function (event) {
         submitButton.disabled = false;
         submitButton.classList.remove('loading');
         submitButton.textContent = 'Submit';
+    }
+
+    function checkSize() {
+        const MAX_SIZE_BYTES = maxSize * 1024 * 1024;
+        const fileInputs = document.querySelectorAll("input[name='files']");
+
+        let totalSize = 0;
+
+        fileInputs.forEach(input => {
+            if (input.files) {
+                for (let i = 0; i < input.files.length; i++) {
+                    totalSize += input.files[i].size;
+                }
+            }
+        });
+
+        return totalSize <= MAX_SIZE_BYTES;
     }
 });

@@ -1,5 +1,6 @@
 package com.aliiabdii.pdf.merger.api
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -12,23 +13,27 @@ data class ErrorMessageModel(
     var message: String? = null
 )
 
+private val logger = KotlinLogging.logger {}
+
 @ControllerAdvice
 class ExceptionControllerAdvice(
-    @Value($$"${spring.servlet.multipart.max-file-size}") private val maxFileSize: String
+    @Value($$"${spring.servlet.multipart.max-request-size}") private val maxRequestSize: String
 ) {
 
     @ExceptionHandler
     fun handleMaxUploadSideException(ex: MaxUploadSizeExceededException): ResponseEntity<ErrorMessageModel> {
+        logger.error { ex }
 
         val errorMessage = ErrorMessageModel(
             HttpStatus.CONTENT_TOO_LARGE.value(),
-            "File too large! Maximum allowed size for each file is $maxFileSize"
+            "Request too large! Maximum allowed size for each request is $maxRequestSize"
         )
         return ResponseEntity(errorMessage, HttpStatus.CONTENT_TOO_LARGE)
     }
 
     @ExceptionHandler
     fun handleIllegalStateException(ex: IllegalStateException): ResponseEntity<ErrorMessageModel> {
+        logger.error { ex }
 
         val errorMessage = ErrorMessageModel(
             HttpStatus.BAD_REQUEST.value(),
@@ -39,7 +44,8 @@ class ExceptionControllerAdvice(
 
     @ExceptionHandler
     fun handleIllegalStateException(ex: Exception): ResponseEntity<ErrorMessageModel> {
-
+        logger.error { ex }
+        
         val errorMessage = ErrorMessageModel(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             ex.message
