@@ -130,11 +130,23 @@ form.addEventListener('submit', function (event) {
         window.URL.revokeObjectURL(url); // Clean up the temporary URL
 
         // Re-enable the button after successful download initiation
-        resetSubmitButton('');
+        trackAndReset('');
     })
     .catch(error => {
-        resetSubmitButton(error.message);
+        trackAndReset(error.message);
     });
+
+    function trackAndReset(error) {
+        let e = {
+            props: {
+                with_error: !!error
+            },
+            callback: function() {
+                resetSubmitButton(error);
+            }
+        }
+        plausible('Merge', e);
+    }
 
     function resetSubmitButton(error) {
         errorMessageDiv.textContent = error
