@@ -22,7 +22,7 @@ private val logger = KotlinLogging.logger {}
 @Controller
 class MainController(
     @Value($$"${service.max-files:5}") private val maxFiles: Int,
-    @Value($$"${service.max-files:5}") private val maxSize: DataSize,
+    @Value($$"${spring.servlet.multipart.max-request-size:20}") private val maxSize: DataSize,
     private val turnstileService: TurnstileService,
     private val pdfService: PDFService) {
 

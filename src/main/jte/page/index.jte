@@ -1,15 +1,15 @@
 @param Boolean captchaEnabled
 @param String siteKey
 @param Integer maxFiles
-@param Integer maxSize
+@param Long maxSize
 
 @template.layout.main(content = @`
     <h1>Merge your PDFs Securely and Free of Charge</h1>
     <p>If you have been searching the web for a tool where you can just merge a bunch of PDF files into one
         without having to be worried about the privacy of your documents, you have come to the right place.
-    <p>Here you can merge up to 5 PDFs, free of charge!</p>
+    <p>Here you can merge up to ${maxFiles} PDFs, in total up to ${maxSize}MB, free of charge!</p>
     <p><b>THIS WEBSITE DOES NOT STORE ANY OF THE FILES THAT YOU UPLOAD!</b> It just merges them on fly and returns
-        the single merged file back to you.</p>
+        the single merged file back to you. More information in <a href="/about">About</a></p>
 
     @if(captchaEnabled)
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
