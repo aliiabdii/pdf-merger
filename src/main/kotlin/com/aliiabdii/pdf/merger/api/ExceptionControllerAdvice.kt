@@ -4,8 +4,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.context.request.ServletWebRequest
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 
 data class ErrorMessageModel(
@@ -34,6 +36,20 @@ class ExceptionControllerAdvice(
     @ExceptionHandler
     fun handleIllegalStateException(ex: IllegalStateException): ResponseEntity<ErrorMessageModel> {
         logger.error { ex }
+
+        val errorMessage = ErrorMessageModel(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.message
+        )
+        return ResponseEntity(errorMessage, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler
+    fun handleRequestMethodNotSupported(
+        ex: HttpRequestMethodNotSupportedException,
+        request: ServletWebRequest): ResponseEntity<ErrorMessageModel>
+    {
+        logger.error { "Unsupported method '${ex.method}' for path '${request.request.requestURI}'" }
 
         val errorMessage = ErrorMessageModel(
             HttpStatus.BAD_REQUEST.value(),
