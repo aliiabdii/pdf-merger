@@ -33,3 +33,9 @@ build/
 .gradle/
 
 .terraform/terraform.tfvars
+
+vince-data
+
+.env
+
+jte-classes
