@@ -15,3 +15,6 @@ turnstile:
   enabled: false
   siteKey: dummy-site-key
   secretKey: dummy-secret
+logging:
+  level:
+    org.apache.pdfbox.pdfparser.COSParser: ERROR
