@@ -109,6 +109,7 @@
     <img src="logo.png" alt="Logo">
     <nav>
         <a href="/">Merge</a>
+        <a href="/compress">Compress</a>
         <a href="/about">About</a>
     </nav>
 </div>

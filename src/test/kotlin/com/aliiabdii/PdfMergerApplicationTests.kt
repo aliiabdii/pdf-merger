@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.view
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import java.io.ByteArrayOutputStream
 
@@ -71,6 +72,37 @@ class PdfMergerIntegrationTests {
                 .characterEncoding("utf-8")
         )
             .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `compress page is available`() {
+        mockMvc.perform(MockMvcRequestBuilders.get("/compress"))
+            .andExpect(status().isOk)
+            .andExpect(view().name("page/compressFile"))
+    }
+
+    @Test
+    fun `compress endpoint returns valid optimized pdf for every compression level`() {
+        val pdf = createPdf(1)
+
+        for (level in listOf("LIGHT", "BALANCED", "STRONG")) {
+            val file = MockMultipartFile("file", "document.pdf", MediaType.APPLICATION_PDF_VALUE, pdf)
+
+            val result = mockMvc.perform(
+                MockMvcRequestBuilders.multipart("/compress_pdf")
+                    .file(file)
+                    .param("compressionLevel", level)
+                    .characterEncoding("utf-8")
+            )
+                .andExpect(status().isOk)
+                .andExpect(header().string("Content-Disposition", containsString("optimized.pdf")))
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andReturn()
+
+            Loader.loadPDF(result.response.contentAsByteArray).use { doc ->
+                assertEquals(1, doc.numberOfPages)
+            }
+        }
     }
 
     private fun createPdf(pages: Int): ByteArray {

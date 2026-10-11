@@ -1,11 +1,13 @@
 package com.aliiabdii.pdf.merger.api
 
 import com.aliiabdii.pdf.merger.service.PDFService
+import com.aliiabdii.pdf.merger.service.CompressionLevel
 import com.aliiabdii.pdf.merger.service.TurnstileService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -45,7 +47,17 @@ class MainController(
         return "page/about"
     }
 
-    @PostMapping(value = ["/merge"], consumes = ["multipart/form-data"])
+    @GetMapping("/compress")
+    fun compress(model: Model): String {
+        model.addAttribute("siteKey", turnstileService.getSiteKey())
+        model.addAttribute("captchaEnabled", turnstileService.isEnabled())
+        return "page/compressFile"
+    }
+
+    @PostMapping(
+        "/merge",
+        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]
+    )
     fun merge(
         @RequestParam("files") files: Array<MultipartFile>,
         @RequestParam("cf-turnstile-response", required = false) captchaToken: String?,
@@ -66,10 +78,49 @@ class MainController(
             val mergedBytes = pdfService.mergePdfFiles(files)
             val resource = ByteArrayResource(mergedBytes)
             return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=\"merged.pdf\"")
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"merged.pdf\""
+                )
                 .contentLength(mergedBytes.size.toLong())
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(resource)
+        } catch (e: Exception) {
+            logger.error { e }
+            return ResponseEntity.status(500).build()
+        }
+    }
+
+    @PostMapping(
+        "/compress_pdf",
+        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
+        produces = [MediaType.APPLICATION_PDF_VALUE]
+    )
+    fun compressPdf(
+        @RequestParam("file") file: MultipartFile,
+        @RequestParam("compressionLevel", defaultValue = "BALANCED") compressionLevel: CompressionLevel,
+        @RequestParam("cf-turnstile-response", required = false) captchaToken: String?,
+        request: HttpServletRequest
+    ): ResponseEntity<ByteArray> {
+        val clientIp = request.remoteAddr
+        val isValid = turnstileService.validate(captchaToken ?: "", clientIp)
+
+        if (!isValid) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        try {
+            val result = pdfService.compressPdf(file, compressionLevel)
+
+            return ResponseEntity.ok()
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"optimized.pdf\""
+                )
+                .header("X-Compression-Applied", result.isCompressed.toString())
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(result.bytes.size.toLong())
+                .body(result.bytes)
         } catch (e: Exception) {
             logger.error { e }
             return ResponseEntity.status(500).build()
