@@ -35,13 +35,17 @@
         @endif
         <br>
         <button type="submit" id="submitButton" class="vince-event-name=Compress">Compress</button>
+        <button type="button" id="recompressButton" hidden>Compress again (may reduce quality)</button>
         <div id="errorMessage" class="error-message"></div>
         <div id="compressionMessage" class="compression-message" role="status" aria-live="polite"></div>
+        <a id="downloadLink" hidden>Download optimized PDF</a>
     </form>
 
     <style>
         .upload-section { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .compression-message { color: green; margin-top: 10px; }
+        #downloadLink { display: inline-block; margin-top: 10px; }
+        #downloadLink[hidden] { display: none; }
     </style>
     <script src="compress.js"></script>
 `)

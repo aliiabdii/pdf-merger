@@ -1,21 +1,46 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('compressForm');
+  const fileInput = document.getElementById('file');
   const submitButton = document.getElementById('submitButton');
+  const recompressButton = document.getElementById('recompressButton');
   const errorMessage = document.getElementById('errorMessage');
   const compressionMessage = document.getElementById('compressionMessage');
+  const downloadLink = document.getElementById('downloadLink');
+  let sourceBlob;
+  let sourceFilename;
+  let compressionPasses = 0;
+  let downloadUrl;
 
-  form.addEventListener('submit', async (event) => {
+  form.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (compressionPasses === 0) submitCompression();
+  });
+
+  recompressButton.addEventListener('click', () => {
+    submitCompression(sourceBlob, sourceFilename);
+  });
+
+  fileInput.addEventListener('change', resetResults);
+
+  async function submitCompression(blob, filename) {
+    if (!hasFreshCaptchaToken()) {
+      errorMessage.textContent = 'Please complete the CAPTCHA before compressing your PDF.';
+      return;
+    }
+
     errorMessage.textContent = '';
     compressionMessage.textContent = '';
-    submitButton.disabled = true;
-    submitButton.classList.add('loading');
-    submitButton.textContent = 'Compressing...';
+    setSubmitting(true);
+    let requestSent = false;
 
     try {
+      const formData = new FormData(form);
+      if (blob) formData.set('file', blob, filename);
+
+      requestSent = true;
       const response = await fetch(form.action, {
         method: 'POST',
-        body: new FormData(form)
+        body: formData
       });
 
       if (!response.ok) {
@@ -27,9 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const compressionApplied = response.headers.get('X-Compression-Applied');
-      const blob = await response.blob();
-      downloadPdf(blob, getDownloadName(response));
-      compressionMessage.textContent = getCompressionMessage(compressionApplied);
+      const resultBlob = await response.blob();
+      const originalSize = blob ? blob.size : fileInput.files[0].size;
+      sourceBlob = resultBlob;
+      sourceFilename = getDownloadName(response);
+      compressionPasses++;
+      showResult(originalSize, resultBlob.size, compressionApplied);
 
       if (typeof plausible === 'function') {
         plausible('Compress', {
@@ -39,11 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       errorMessage.textContent = error.message;
     } finally {
-      submitButton.disabled = false;
-      submitButton.classList.remove('loading');
-      submitButton.textContent = 'Compress';
+      if (requestSent) resetTurnstile();
+      setSubmitting(false);
     }
-  });
+  }
 
   async function getErrorMessage(response) {
     const rawError = await response.text();
@@ -55,30 +82,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function hasFreshCaptchaToken() {
+    const captchaInput = form.querySelector('[name="cf-turnstile-response"]');
+    return !captchaInput || captchaInput.value;
+  }
+
   function getDownloadName(response) {
     const contentDisposition = response.headers.get('content-disposition');
     const filename = contentDisposition?.match(/filename="?([^";]+)"?/i)?.[1];
     return filename || 'optimized.pdf';
   }
 
-  function downloadPdf(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(url);
+  function showResult(originalSize, optimizedSize, compressionApplied) {
+    if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+    downloadUrl = URL.createObjectURL(sourceBlob);
+    downloadLink.href = downloadUrl;
+    downloadLink.download = sourceFilename;
+    downloadLink.hidden = false;
+    compressionMessage.textContent = getCompressionMessage(
+      originalSize,
+      optimizedSize,
+      compressionApplied
+    );
+
+    submitButton.hidden = true;
+    recompressButton.hidden = compressionPasses >= 2;
   }
 
-  function getCompressionMessage(compressionApplied) {
+  function getCompressionMessage(originalSize, optimizedSize, compressionApplied) {
     if (compressionApplied === 'true') {
-      return 'Your PDF was compressed and downloaded.';
+      const reduction = ((1 - optimizedSize / originalSize) * 100).toFixed(1);
+      return `${formatSize(originalSize)} → ${formatSize(optimizedSize)} (${reduction}% smaller).`;
     }
 
     if (compressionApplied === 'false') {
-      return 'The selected level did not meaningfully reduce this PDF\'s size, so the original was downloaded unchanged. Please try a different compression level.';
+      return `No smaller version was produced; ${formatSize(optimizedSize)} was retained unchanged.`;
     }
 
-    return 'Your PDF was downloaded.';
+    return `${formatSize(originalSize)} → ${formatSize(optimizedSize)}.`;
+  }
+
+  function formatSize(bytes) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  function setSubmitting(isSubmitting) {
+    submitButton.disabled = isSubmitting;
+    recompressButton.disabled = isSubmitting;
+    submitButton.classList.toggle('loading', isSubmitting);
+    recompressButton.classList.toggle('loading', isSubmitting);
+    submitButton.textContent = isSubmitting ? 'Compressing...' : 'Compress';
+    recompressButton.textContent = isSubmitting
+      ? 'Compressing...'
+      : 'Compress again (may reduce quality)';
+  }
+
+  function resetTurnstile() {
+    if (window.turnstile) window.turnstile.reset();
+  }
+
+  function resetResults() {
+    sourceBlob = undefined;
+    sourceFilename = undefined;
+    compressionPasses = 0;
+    compressionMessage.textContent = '';
+    errorMessage.textContent = '';
+    recompressButton.hidden = true;
+    submitButton.hidden = false;
+    downloadLink.hidden = true;
+    downloadLink.removeAttribute('href');
+    downloadLink.removeAttribute('download');
+    if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+    downloadUrl = undefined;
   }
 });
