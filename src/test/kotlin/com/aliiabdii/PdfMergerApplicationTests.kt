@@ -105,6 +105,19 @@ class PdfMergerIntegrationTests {
         }
     }
 
+    @Test
+    fun `invalid compression level returns bad request`() {
+        val file = MockMultipartFile("file", "document.pdf", MediaType.APPLICATION_PDF_VALUE, createPdf(1))
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.multipart("/compress_pdf")
+                .file(file)
+                .param("compressionLevel", "INVALID")
+                .characterEncoding("utf-8")
+        )
+            .andExpect(status().isBadRequest)
+    }
+
     private fun createPdf(pages: Int): ByteArray {
         PDDocument().use { doc ->
             repeat(pages) { doc.addPage(PDPage()) }

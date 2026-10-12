@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.HttpRequestMethodNotSupportedException
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.ServletWebRequest
@@ -54,6 +55,19 @@ class ExceptionControllerAdvice(
         val errorMessage = ErrorMessageModel(
             HttpStatus.BAD_REQUEST.value(),
             ex.message
+        )
+        return ResponseEntity(errorMessage, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler
+    fun handleMethodArgumentTypeMismatch(
+        ex: MethodArgumentTypeMismatchException
+    ): ResponseEntity<ErrorMessageModel> {
+        logger.error { ex }
+
+        val errorMessage = ErrorMessageModel(
+            HttpStatus.BAD_REQUEST.value(),
+            "Invalid value for '${ex.name}'"
         )
         return ResponseEntity(errorMessage, HttpStatus.BAD_REQUEST)
     }
