@@ -13,8 +13,8 @@ gg:
     development-mode: true
 turnstile:
   enabled: false
-  siteKey: dummy-site-key
-  secretKey: dummy-secret
+  siteKey: ${TURNSTILE_SITE_KEY}
+  secretKey: ${TURNSTILE_SECRET_KEY}
 logging:
   level:
     org.apache.pdfbox.pdfparser.COSParser: ERROR
