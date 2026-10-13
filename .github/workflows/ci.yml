@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/aliiabdii/pdf-merger
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Run frontend tests
+        run: |
+          npm ci
+          npm run test:js
+
+      - name: Run backend tests
+        run: ./gradlew test --no-daemon --console=plain
+
+  publish:
+    name: Build and publish image
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            --username "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Build image
+        run: |
+          docker build \
+            --tag "$IMAGE_NAME:sha-${GITHUB_SHA}" \
+            --tag "$IMAGE_NAME:latest" \
+            .
+
+      - name: Publish image
+        run: |
+          docker push "$IMAGE_NAME:sha-${GITHUB_SHA}"
+          docker push "$IMAGE_NAME:latest"
