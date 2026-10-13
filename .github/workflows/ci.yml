@@ -69,3 +69,46 @@ jobs:
         run: |
           docker push "$IMAGE_NAME:sha-${GITHUB_SHA}"
           docker push "$IMAGE_NAME:latest"
+
+  deploy:
+    name: Deploy to Hetzner
+    needs: publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: cloud
+
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.HETZNER_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Pull image, restart application, and verify health
+        env:
+          HETZNER_HOST: ${{ vars.HETZNER_HOSTNAME }}
+          HETZNER_USER: ${{ secrets.HETZNER_USER }}
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "$HETZNER_USER@$HETZNER_HOST" << 'EOF'
+              set -eu
+              cd /opt/pdf-merger
+              docker compose pull pdf-merger
+              docker compose up -d --no-deps --force-recreate pdf-merger
+
+              for attempt in $(seq 1 12); do
+                if curl -fsS http://localhost:8080/actuator/health; then
+                  exit 0
+                fi
+                sleep 5
+              done
+
+              exit 1
+          EOF
