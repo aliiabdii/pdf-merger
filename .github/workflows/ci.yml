@@ -103,14 +103,17 @@ jobs:
               docker compose pull pdf-merger
               docker compose up -d --no-deps --force-recreate pdf-merger
 
+              sleep 2
               for attempt in $(seq 1 12); do
-                if curl -fsS http://localhost:8080/actuator/health; then
+                if curl --silent --show-error --fail \
+                    --max-time 5 \
+                    http://localhost:8080/actuator/health; then
                   echo "Service is up!"
                   exit 0
                 fi
                 sleep 5
               done
 
-              echo "Service failed to become healthy within 60 seconds."
+              echo "Service failed to become healthy after 12 attempts."
               exit 1
           EOF
