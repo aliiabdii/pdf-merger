@@ -105,10 +105,12 @@ jobs:
 
               for attempt in $(seq 1 12); do
                 if curl -fsS http://localhost:8080/actuator/health; then
+                  echo "Service is up!"
                   exit 0
                 fi
                 sleep 5
               done
 
+              echo "Service failed to become healthy within 60 seconds."
               exit 1
           EOF
